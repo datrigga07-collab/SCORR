@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Scorr — Vivez tout le meilleur du sport</title>
+<meta name="description" content="Scorr — Vivez tout le meilleur du sport. Suivez le foot, basket, F1, cyclisme et plus." />
+<link rel="icon" href="scorr-assets/scorr_logo_32.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#0836A8;--accent:#FF31D7;--bg:#ffffff;--card:rgba(7,13,28,0.04);--glass:rgba(255,255,255,0.6)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+body{background:var(--bg);color:#0b2540;transition:background .3s,color .3s;min-height:100vh}
+body.night{background:#071121;color:#e8f1ff}
+.app{max-width:1100px;margin:20px auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0.6));box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+body.night .header{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03)}
+.logo{height:44px;width:44px;border-radius:10px;object-fit:contain}
+.controls{display:flex;align-items:center;gap:8px}
+.input{padding:8px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);min-width:200px;background:transparent}
+.tabstrip{display:flex;gap:8px;overflow:auto;padding:12px 0;scrollbar-width:none}
+.tab{padding:8px 14px;border-radius:999px;background:rgba(7,13,28,0.04);cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--brand);color:#fff;font-weight:700;box-shadow:0 6px 20px rgba(8,54,168,0.18)}
+.splash{height:220px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;margin-top:12px;border:1px solid rgba(0,0,0,0.04)}
+body.night .splash{background:linear-gradient(180deg,rgba(8,54,168,0.95),rgba(8,54,168,0.85));color:white;background-image:url('scorr-assets/scorr_hero_nexus_blue.png');background-size:cover;background-position:center}
+.grid{display:grid;grid-template-columns:1fr 320px;gap:12px;margin-top:12px}
+.card{background:rgba(255,255,255,0.9);padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.04)}
+body.night .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03)}
+.event{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.03);margin-bottom:8px;cursor:pointer;transition:transform .15s}
+.event:hover{transform:translateX(4px)}
+.star{font-size:20px;cursor:pointer;transition:transform .2s;user-select:none}
+.star.on{color:gold;transform:scale(1.2) rotate(-10deg)}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .controls .input{min-width:120px}
+}
+.small{font-size:13px;color:rgba(11,37,64,0.7)}
+.countdown{font-weight:700;color:var(--accent)}
+@keyframes pop {0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.star.animate{animation:pop .35s ease-in-out}
+</style>
+</head>
+<body class="day">
+<div class="app" role="application" aria-label="Scorr sports dashboard">
+  <header class="header" role="banner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <img src="scorr-assets/logo_Scorr_E2.png" class="logo" alt="Scorr logo">
+      <div>
+        <div style="font-weight:800">Scorr</div>
+        <div class="small" id="tagline">Vivez tout le meilleur du sport</div>
+      </div>
+    </div>
+
+    <div class="controls" role="search">
+      <input id="search" class="input" placeholder="Search teams or events…" aria-label="Search teams or events">
+      <select id="lang" class="input" aria-label="Language toggle"><option value="fr">FR</option><option value="en">EN</option></select>
+      <button id="theme" class="input" aria-pressed="false">☀️ / 🌙</button>
+    </div>
+  </header>
+
+  <section class="splash card" role="region" aria-label="Hero">
+    <div>
+      <h1 style="margin:0">Scorr</h1>
+      <div id="heroDesc" style="margin-top:8px;font-weight:600;color:var(--brand)">Where the best of sports happens</div>
+    </div>
+  </section>
+
+  <div class="tabstrip" id="tabstrip" aria-label="sports">
+    <!-- tabs injected here -->
+  </div>
+
+  <div class="grid">
+    <main>
+      <div class="card" id="mainCard" role="main">
+        <h3 id="mainTitle">Favorites</h3>
+        <div id="list" aria-live="polite"></div>
+      </div>
+    </main>
+
+    <aside>
+      <div class="card" aria-label="favorites panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Favorites</strong><div class="small" id="favCount">0 items</div></div>
+          <div><button id="clearFav">Clear</button></div>
+        </div>
+        <div id="favPane" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card small" style="margin-top:12px">
+        <div><strong>About</strong></div>
+        <div style="margin-top:8px">Scorr — Where the best of sports happens. This demo uses a server-side proxy for the football API (recommended). Set the server env variable <code>SCORR_API_FOOTBALL_KEY</code> on your host.</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* CONFIG */
+const CONFIG = {
+  // frontend calls proxy endpoints below; proxy will add the secret API key server-side
+  FOOTBALL_PROXY: '/api/football',   // Vercel path
+  NETLIFY_PROXY: '/.netlify/functions/football', // if you use Netlify
+  NBA_BASE: 'https://www.balldontlie.io/api/v1',
+  F1_BASE: 'https://ergast.com/api/f1',
+  REFRESH: 2*60*1000
+};
+
+const sportsOrder = ['football','basketball','f1','cycling','tennis','rugby','cricket','nfl','hockey'];
+let current = 'favorites';
+let favs = JSON.parse(localStorage.getItem('scorr_favs_v1')||'{}');
+let football={fixtures:{}}, basketball={games:[]}, f1={races:[]}, cycling={events:[]};
+
+/* DOM */
+const tabstrip = document.getElementById('tabstrip'), list = document.getElementById('list'), favPane=document.getElementById('favPane'), favCount=document.getElementById('favCount'), mainTitle=document.getElementById('mainTitle');
+const langSel=document.getElementById('lang'), themeBtn=document.getElementById('theme'), search=document.getElementById('search');
+
+/* theme auto at load */
+(function(){ const h=new Date().getHours(); if(h>=6 && h<18) document.body.classList.add('day'); else document.body.classList.add('night'); })();
+
+/* tabs render */
+function renderTabs(){
+  tabstrip.innerHTML='';
+  const fav = document.createElement('div'); fav.className='tab' + (current==='favorites'?' active':'');
+  fav.textContent='★ Favorites'; fav.onclick=()=>{ current='favorites'; render(); }; tabstrip.appendChild(fav);
+  sportsOrder.forEach(s=>{ const d=document.createElement('div'); d.className='tab' + (current===s?' active':'' ); d.textContent=s.toUpperCase(); d.onclick=()=>{ current=s; render(); }; tabstrip.appendChild(d); });
+}
+renderTabs();
+
+/* favs */
+function saveFavs(){ localStorage.setItem('scorr_favs_v1', JSON.stringify(favs)); }
+function toggleFav(s,key,el){
+  favs[s]=favs[s]||[];
+  const i=favs[s].indexOf(key);
+  if(i===-1){ favs[s].push(key); el.classList.add('on'); el.classList.add('animate'); setTimeout(()=>el.classList.remove('animate'),350);} else { favs[s].splice(i,1); el.classList.remove('on'); }
+  saveFavs(); renderFavs(); render();
+}
+function renderFavs(){ favPane.innerHTML=''; let total=0; for(const s in favs){ (favs[s]||[]).forEach(it=>{ total++; const r=document.createElement('div'); r.className='event'; r.innerHTML = `<div>${it}</div><div><button onclick="openFav('${s}','${encodeURIComponent(it)}')">Open</button><button onclick="removeFav('${s}','${encodeURIComponent(it)}')">Remove</button></div>`; favPane.appendChild(r); }); } favCount.textContent = total + ' items'; }
+window.openFav=(s,it)=>{ it=decodeURIComponent(it); alert(`${s} — ${it}`); }
+window.removeFav=(s,it)=>{ it=decodeURIComponent(it); favs[s]=(favs[s]||[]).filter(x=>x!==it); saveFavs(); renderFavs(); render(); }
+
+/* serverless-backed fetchers (call the proxy which injects the API key) */
+async function fetchFootball(){
+  // try both Vercel and Netlify proxy patterns automatically
+  const proxyBase = (typeof window !== 'undefined' && window.location.hostname && window.location.hostname.includes('localhost')) ? CONFIG.FOOTBALL_PROXY : CONFIG.FOOTBALL_PROXY;
+  try{
+    const leagues=[{id:39,name:'Premier League'},{id:140,name:'La Liga'},{id:135,name:'Serie A'}];
+    football.fixtures = {};
+    for(const L of leagues){
+      // proxy endpoint: /api/football/fixtures?league=39&season=2024&next=5
+      const url = `${proxyBase}/fixtures?league=${L.id}&season=2024&next=5`;
+      const resp = await fetch(url);
+      const j = await resp.json();
+      // response mirrors API-SPORTS structure with `response` property
+      const items = (j.response || j) || [];
+      football.fixtures[L.id] = (items || []).map(f => ({ home: f.teams?.home?.name || f.home?.name || f.home, away: f.teams?.away?.name || f.away?.name || f.away, date: f.fixture?.date || f.date || f.utcDate || f.fixture?.utc || f.fixture?.timestamp || new Date().toISOString() }));
+    }
+  }catch(e){ console.warn('fetchFootball error', e); }
+}
+
+async function fetchBasketball(){
+  try{
+    const tresp = await fetch(`${CONFIG.NBA_BASE}/games?per_page=6`);
+    const j = await tresp.json();
+    basketball.games = j.data || [];
+  }catch(e){ console.warn('fetchBasketball error', e); }
+}
+
+async function fetchF1(){
+  try{ const r = await fetch(`${CONFIG.F1_BASE}/current.json`); const j = await r.json(); const races = j.MRData.RaceTable.Races || []; f1.races = races.map(rc=>({raceName:rc.raceName,date:rc.date+'T'+(rc.time||'00:00:00'),circuit:rc.Circuit.circuitName})); }catch(e){console.warn('fetchF1 error', e)}
+}
+
+async function fetchCycling(){
+  try{ const res = await fetch('https://raw.githubusercontent.com/ramonsaraiva/uci-rankings/main/data/races.json').catch(()=>null); if(res && res.ok){ const j=await res.json(); cycling.events = (j.slice(0,6)||[]).map(x=>({name:x.name,date:x.start_date||new Date().toISOString()})); } else { cycling.events = [{name:'Tour de France (demo)',date:new Date(Date.now()+5*24*3600*1000).toISOString()}]; } }catch(e){ console.warn('fetchCycling error', e); cycling.events=[{name:'Tour de France (demo)',date:new Date().toISOString()}]; }
+
+function formatCountdown(d){
+  const now=new Date(); const dt=new Date(d); const diff=dt-now; if(isNaN(dt) || diff<=0) return 'Live/Started'; const days=Math.floor(diff/86400000); if(days>=1) return days + ' days left'; const hrs=Math.floor(diff/3600000); const mins=Math.floor((diff%3600000)/60000); const secs=Math.floor((diff%60000)/1000); return `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; }
+
+/* render functions */
+function render(){ renderTabs(); if(current==='favorites'){ renderFavList(); return;} if(current==='football'){ renderFootball(); return;} if(current==='basketball'){ renderBasketball(); return;} if(current==='f1'){ renderF1(); return;} if(current==='cycling'){ renderCycling(); return;} renderMock(current); }
+
+function renderFavList(){ mainTitle.textContent='Favorites'; list.innerHTML=''; for(const s in favs){ (favs[s]||[]).forEach(it=>{ const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div>${it}</div><div><button onclick="openFav('${s}','${encodeURIComponent(it)}')">Open</button></div>`; list.appendChild(el); }); } }
+
+function renderFootball(){ mainTitle.textContent='Football'; list.innerHTML=''; let any=false; for(const lid in football.fixtures){ (football.fixtures[lid]||[]).forEach(f=>{ any=true; const key=`${f.home} vs ${f.away}`; const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div><strong>${key}</strong><div class="small">${new Date(f.date).toLocaleString()}</div></div><div><div class="small">${formatCountdown(f.date)}</div><div><span class="star ${(favs['football']||[]).indexOf(key)!==-1 ? 'on':''}" onclick="toggleFav('football','${encodeURIComponent(key)}', this); event.stopPropagation();">${ (favs['football']||[]).indexOf(key)!==-1 ? '★' : '☆' }</span></div></div>`; el.onclick=()=>alert(key); list.appendChild(el); }); } if(!any) list.innerHTML='<div class="small">No upcoming matches (or missing server proxy / key).</div>'; }
+
+function renderBasketball(){ mainTitle.textContent='Basketball'; list.innerHTML=''; const items=basketball.games||[]; if(!items.length){ list.innerHTML='<div class="small">No upcoming games loaded.</div>'; return;} items.forEach(g=>{ const key=`${g.home_team.full_name} vs ${g.visitor_team.full_name}`; const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div><strong>${key}</strong><div class="small">${new Date(g.date).toLocaleString()}</div></div><div><div class="small">${formatCountdown(g.date)}</div><div><span class="star ${(favs['basketball']||[]).indexOf(key)!==-1 ? 'on':''}" onclick="toggleFav('basketball','${encodeURIComponent(key)}', this); event.stopPropagation();">${ (favs['basketball']||[]).indexOf(key)!==-1 ? '★' : '☆' }</span></div></div>`; el.onclick=()=>alert(key); list.appendChild(el); }); }
+
+function renderF1(){ mainTitle.textContent='F1'; list.innerHTML=''; const races=f1.races||[]; if(!races.length){ list.innerHTML='<div class="small">No races loaded.</div>'; return;} races.forEach(r=>{ const key=`${r.raceName} — ${r.circuit}`; const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div><strong>${key}</strong><div class="small">${new Date(r.date).toLocaleString()}</div></div><div><div class="small">${formatCountdown(r.date)}</div><div><span class="star ${(favs['f1']||[]).indexOf(key)!==-1 ? 'on':''}" onclick="toggleFav('f1','${encodeURIComponent(key)}', this); event.stopPropagation();">${ (favs['f1']||[]).indexOf(key)!==-1 ? '★' : '☆' }</span></div></div>`; el.onclick=()=>alert(key); list.appendChild(el); }); }
+
+function renderCycling(){ mainTitle.textContent='Cycling'; list.innerHTML=''; const ev=cycling.events||[]; if(!ev.length){ list.innerHTML='<div class="small">No cycling events loaded.</div>'; return;} ev.forEach(c=>{ const key=`${c.name}`; const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div><strong>${key}</strong><div class="small">${new Date(c.date).toLocaleString()}</div></div><div><div class="small">${formatCountdown(c.date)}</div><div><span class="star ${(favs['cycling']||[]).indexOf(key)!==-1 ? 'on':''}" onclick="toggleFav('cycling','${encodeURIComponent(key)}', this); event.stopPropagation();">${ (favs['cycling']||[]).indexOf(key)!==-1 ? '★' : '☆' }</span></div></div>`; el.onclick=()=>alert(key); list.appendChild(el); }); }
+
+function renderMock(s){ mainTitle.textContent=s.charAt(0).toUpperCase()+s.slice(1); list.innerHTML=''; const examples=[s+' Event 1',s+' Event 2',s+' Show (demo)']; examples.forEach(x=>{ const el=document.createElement('div'); el.className='event'; el.innerHTML=`<div><strong>${x}</strong><div class="small">Demo</div></div><div><div class="small">—</div><div><span class="star" onclick="toggleFav('${s}','${encodeURIComponent(x)}', this); event.stopPropagation();">☆</span></div></div>`; el.onclick=()=>alert(x); list.appendChild(el); }); }
+
+/* search */
+search.addEventListener('input', ()=>{
+  const q = search.value.trim().toLowerCase();
+  if(q.length<2) return;
+  const pool=[];
+  for(const lid in football.fixtures) (football.fixtures[lid]||[]).forEach(f=>pool.push({sport:'football',name:`${f.home} vs ${f.away}`}));
+  (basketball.games||[]).forEach(g=>pool.push({sport:'basketball',name:`${g.home_team.full_name} vs ${g.visitor_team.full_name}`}));
+  (f1.races||[]).forEach(r=>pool.push({sport:'f1',name:r.raceName}));
+  (cycling.events||[]).forEach(c=>pool.push({sport:'cycling',name:c.name}));
+  const matches=pool.filter(p=>p.name.toLowerCase().includes(q)).slice(0,12);
+  if(matches.length) alert(matches.map(m=>m.name+' • '+m.sport).join('\\n'));
+});
+
+/* boot fetch + refresh */
+async function fetchAll(){ await Promise.all([fetchFootball(), fetchBasketball(), fetchF1(), fetchCycling()]); render(); renderFavs(); }
+fetchAll(); setInterval(fetchAll, CONFIG.REFRESH);
+
+/* UI handlers */
+themeBtn.onclick=()=>{ document.body.classList.toggle('day'); document.body.classList.toggle('night'); themeBtn.setAttribute('aria-pressed', document.body.classList.contains('night')); }
+langSel.onchange=()=>{ document.documentElement.lang = langSel.value; document.getElementById('tagline').textContent = langSel.value==='fr' ? 'Vivez tout le meilleur du sport' : 'Where the best of sports happens'; document.getElementById('heroDesc').textContent = langSel.value==='fr' ? 'Vivez tout le meilleur du sport' : 'Where the best of sports happens'; }
+document.getElementById('clearFav').onclick=()=>{ if(confirm('Clear favorites?')){ favs={}; saveFavs(); renderFavs(); render(); } }
+
+/* initial render */
+renderFavs(); render();
+</script>
+</body>
+</html>
